@@ -1,11 +1,18 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import { JWT_SECRET } from "../config/env.js";
-import { createUser, getUserByEmail, updateUserTokens } from "../services/userService.js";
+import {
+  createUser,
+  getUserByEmail,
+  updateUserTokens,
+  getUserByVerificationToken,
+} from "../services/userService.js";
 import {
   getAuthUrl,
   getTokensFromCode,
 } from "../services/googleCalendarService.js";
+import { sendVerificationEmail } from "../services/emailService.js";
 
 // POST /api/auth/register
 export async function register(req, res) {
@@ -27,17 +34,32 @@ export async function register(req, res) {
       });
     }
 
+    // Generar token seguro de verificación (hex de 32 bytes = 64 caracteres)
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 horas
+
     const passwordHash = await bcrypt.hash(password, 10);
+
     await createUser({
       nombre,
       email,
       password: passwordHash,
       rol: rol === "admin" ? "admin" : "user",
+      isVerified: false,
+      verificationToken,
+      verificationTokenExpires,
     });
+
+    // Enviar email (no bloqueante: si falla el email, la cuenta igual se crea)
+    try {
+      await sendVerificationEmail(email, nombre, verificationToken);
+    } catch (emailError) {
+      console.warn("Email de verificación no enviado:", emailError.message);
+    }
 
     return res.status(201).json({
       success: true,
-      message: "Usuario registrado correctamente",
+      message: "Usuario registrado correctamente. Revisá tu correo para verificar tu cuenta.",
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -72,6 +94,17 @@ export async function login(req, res) {
       });
     }
 
+    // Bloquear login si el email no está verificado.
+    // Excepción: usuarios con Google OAuth2 (tienen googleAccessToken) se consideran verificados.
+    const esUsuarioGoogle = !!user.googleAccessToken;
+    if (!user.isVerified && !esUsuarioGoogle) {
+      return res.status(403).json({
+        success: false,
+        message: "Debes verificar tu correo antes de iniciar sesión. Revisá tu bandeja de entrada.",
+        code: "EMAIL_NOT_VERIFIED",
+      });
+    }
+
     const payload = {
       id: user._id,
       nombre: user.nombre,
@@ -85,6 +118,51 @@ export async function login(req, res) {
       success: true,
       message: "Login exitoso",
       data: { token, user: payload },
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+// GET /api/auth/verify-email?token=TOKEN
+export async function verifyEmail(req, res) {
+  try {
+    const { token } = req.query;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: "Token de verificación requerido",
+      });
+    }
+
+    const user = await getUserByVerificationToken(token);
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Token inválido o ya utilizado",
+      });
+    }
+
+    // Verificar que el token no esté expirado
+    if (user.verificationTokenExpires < new Date()) {
+      return res.status(400).json({
+        success: false,
+        message: "El link de verificación expiró. Registrate nuevamente para recibir uno nuevo.",
+        code: "TOKEN_EXPIRED",
+      });
+    }
+
+    // Marcar como verificado y limpiar el token
+    user.isVerified = true;
+    user.verificationToken = null;
+    user.verificationTokenExpires = null;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "¡Correo verificado correctamente! Ya podés iniciar sesión.",
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -107,8 +185,6 @@ export async function googleAuthCallback(req, res) {
 
     const tokens = await getTokensFromCode(code);
 
-    // El userId viene en el state si se implementa; por ahora se guarda tras el login
-    // Para simplificar: guardamos los tokens en el usuario autenticado vía query param userId
     const { userId } = req.query;
     if (userId) {
       await updateUserTokens(userId, tokens.access_token, tokens.refresh_token);

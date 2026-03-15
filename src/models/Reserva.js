@@ -28,6 +28,16 @@ const reservaSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    estadoPago: {
+      type: String,
+      enum: ["pendiente", "confirmado", "cancelado"],
+      default: "pendiente",
+    },
+    metodoPago: {
+      type: String,
+      enum: ["transferencia", "efectivo"],
+      default: "transferencia",
+    },
     deleted: {
       type: Boolean,
       default: false,
@@ -35,5 +45,9 @@ const reservaSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Índice compuesto para acelerar las consultas de disponibilidad
+// (canchaId + fecha es la combinación más consultada)
+reservaSchema.index({ canchaId: 1, fecha: 1, deleted: 1 });
 
 export default mongoose.model("Reserva", reservaSchema);

@@ -43,3 +43,40 @@ export async function deleteReserva(id) {
 export async function updateGoogleEventId(id, googleEventId) {
   return await Reserva.findByIdAndUpdate(id, { googleEventId }, { new: true });
 }
+
+// Devuelve reservas activas de una cancha en una fecha (solo horarios, para disponibilidad)
+export async function getReservasPorCanchaYFecha(canchaId, fecha) {
+  return await Reserva.find({ canchaId, fecha, deleted: false }).select(
+    "horaInicio horaFin"
+  );
+}
+
+// Vista completa para admin con populate de usuario y cancha
+export async function getAllReservasAdmin() {
+  return await Reserva.find({ deleted: false })
+    .populate("userId", "nombre email")
+    .populate("canchaId", "nombre tipo precio")
+    .sort({ fecha: 1, horaInicio: 1 });
+}
+
+// Confirmar pago de una reserva (solo admin)
+export async function confirmarPago(id) {
+  return await Reserva.findByIdAndUpdate(
+    id,
+    { estadoPago: "confirmado" },
+    { new: true }
+  )
+    .populate("userId", "nombre email")
+    .populate("canchaId", "nombre tipo precio");
+}
+
+// Cancelar pago de una reserva (solo admin)
+export async function cancelarPago(id) {
+  return await Reserva.findByIdAndUpdate(
+    id,
+    { estadoPago: "cancelado" },
+    { new: true }
+  )
+    .populate("userId", "nombre email")
+    .populate("canchaId", "nombre tipo precio");
+}

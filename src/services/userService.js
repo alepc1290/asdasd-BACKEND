@@ -27,3 +27,11 @@ export async function updateUserTokens(userId, accessToken, refreshToken) {
     { new: true }
   );
 }
+
+// Busca un usuario por su token de verificación (solo activos, no eliminados)
+export async function getUserByVerificationToken(token) {
+  return await User.findOne({
+    verificationToken: token,
+    deleted: false,
+  });
+}

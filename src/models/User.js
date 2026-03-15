@@ -26,6 +26,19 @@ const userSchema = new mongoose.Schema(
     // Tokens de Google OAuth2 para Calendar (se guardan tras autorizar)
     googleAccessToken: { type: String, default: null },
     googleRefreshToken: { type: String, default: null },
+    // Verificación de email
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verificationToken: {
+      type: String,
+      default: null,
+    },
+    verificationTokenExpires: {
+      type: Date,
+      default: null,
+    },
     deleted: {
       type: Boolean,
       default: false,
