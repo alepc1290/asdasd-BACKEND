@@ -35,3 +35,8 @@ export async function getUserByVerificationToken(token) {
     deleted: false,
   });
 }
+
+// Busca un usuario por su Google ID (para login con OAuth)
+export async function getUserByGoogleId(googleId) {
+  return await User.findOne({ googleId, deleted: false });
+}

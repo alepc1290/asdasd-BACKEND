@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { FRONT_URL } from "./config/env.js";
 import router from "./routes/index.js";
+import passport from "./config/passport.js"; // Passport Google OAuth
 
 const app = express();
 
@@ -13,6 +14,9 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Inicializar Passport (sin sesiones — usamos JWT)
+app.use(passport.initialize());
 
 // Rutas
 app.use("/api", router);

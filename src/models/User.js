@@ -16,7 +16,18 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, "La contraseña es requerida"],
+      required: false, // no es requerido para usuarios de Google
+    },
+    // Proveedor de autenticación
+    provider: {
+      type: String,
+      enum: ["local", "google"],
+      default: "local",
+    },
+    // ID de Google (solo para usuarios con provider = "google")
+    googleId: {
+      type: String,
+      default: null,
     },
     rol: {
       type: String,

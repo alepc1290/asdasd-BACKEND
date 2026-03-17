@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { JWT_SECRET } from "../config/env.js";
+import { JWT_SECRET, FRONT_URL } from "../config/env.js";
 import {
   createUser,
   getUserByEmail,
@@ -83,6 +83,15 @@ export async function login(req, res) {
       return res.status(401).json({
         success: false,
         message: "Credenciales inválidas",
+      });
+    }
+
+    // Usuarios registrados con Google no tienen contraseña local
+    if (user.provider === "google" && !user.password) {
+      return res.status(400).json({
+        success: false,
+        message: "Esta cuenta fue creada con Google. Usá el botón 'Iniciar sesión con Google'.",
+        code: "USE_GOOGLE_LOGIN",
       });
     }
 
@@ -168,6 +177,38 @@ export async function verifyEmail(req, res) {
     return res.status(500).json({ success: false, message: error.message });
   }
 }
+
+// ─── Google OAuth Login ────────────────────────────────────────────────────────
+
+// GET /api/auth/google/login — inicia el flujo de login con Google (Passport)
+// (la redirección real la hace passport.authenticate en la ruta)
+
+// GET /api/auth/google/callback — Passport procesa el perfil y llega aquí con req.user
+export function googleLoginCallback(req, res) {
+  try {
+    const user = req.user;
+
+    if (!user) {
+      return res.redirect(`${FRONT_URL}/login?error=google_auth_failed`);
+    }
+
+    const payload = {
+      id: user._id,
+      nombre: user.nombre,
+      email: user.email,
+      rol: user.rol,
+    };
+
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+
+    // Redirigir al frontend con el token en la URL
+    return res.redirect(`${FRONT_URL}/auth/google/success?token=${token}`);
+  } catch (error) {
+    return res.redirect(`${FRONT_URL}/login?error=server_error`);
+  }
+}
+
+// ─── Google Calendar OAuth2 (vinculación de agenda) ──────────────────────────
 
 // GET /api/auth/google — redirige al usuario a la pantalla de autorización de Google
 export function googleAuthRedirect(req, res) {
