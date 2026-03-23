@@ -18,7 +18,7 @@ export const CBU_TRANSFERENCIA =
 export const TITULAR_CUENTA =
   process.env.TITULAR_CUENTA || "Complejo Deportivo";
 export const BANCO_NOMBRE = process.env.BANCO_NOMBRE || "Banco Nación";
-export const WHATSAPP_ADMIN = process.env.WHATSAPP_ADMIN || "5491100000000";
+export const WHATSAPP_ADMIN = process.env.WHATSAPP_ADMIN || "+5493813657948";
 
 // Nodemailer — configuración SMTP
 export const EMAIL_HOST = process.env.EMAIL_HOST || "smtp.gmail.com";
