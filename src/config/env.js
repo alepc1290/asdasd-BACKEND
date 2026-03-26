@@ -28,3 +28,8 @@ export const EMAIL_PASS = process.env.EMAIL_PASS;
 export const EMAIL_FROM =
   process.env.EMAIL_FROM || "Canchas & Deportes <no-reply@canchas.com>";
 export const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3000";
+
+export const JWT_PASSWORD = process.env.JWT_PASSWORD;
+export const CLOUDINARY_SECRET = process.env.CLOUDINARY_SECRET;
+export const CLOUDINARY_CLOUDNAME = process.env.CLOUDINARY_CLOUDNAME;
+export const CLOUDINARY_APIKEY = process.env.CLOUDINARY_APIKEY;
