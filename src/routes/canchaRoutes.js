@@ -1,11 +1,5 @@
 import { Router } from "express";
-import {
-  getCanchas,
-  getCancha,
-  addCancha,
-  editCancha,
-  removeCancha,
-} from "../controllers/canchaController.js";
+import { getCanchas, getCancha, addCancha, editCancha, removeCancha } from "../controllers/canchaController.js";
 import { verifyToken } from "../middlewares/authMiddleware.js";
 import { verifyAdmin } from "../middlewares/adminMiddleware.js";
 

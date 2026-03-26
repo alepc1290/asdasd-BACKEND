@@ -1,13 +1,5 @@
 import nodemailer from "nodemailer";
-import {
-  EMAIL_HOST,
-  EMAIL_PORT,
-  EMAIL_USER,
-  EMAIL_PASS,
-  EMAIL_FROM,
-  BACKEND_URL,
-  FRONT_URL,
-} from "../config/env.js";
+import { EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS, EMAIL_FROM, BACKEND_URL, FRONT_URL,} from "../config/env.js";
 
 // Crea el transporter reutilizable
 const transporter = nodemailer.createTransport({
@@ -26,7 +18,7 @@ const transporter = nodemailer.createTransport({
  * @param {string} nombre    - Nombre del usuario
  * @param {string} token     - Token de verificación generado con crypto
  */
-export async function sendVerificationEmail(toEmail, nombre, token) {
+async function sendVerificationEmail(toEmail, nombre, token) {
   const verifyUrl = `${FRONT_URL}/verify-email?token=${token}`;
 
 
@@ -122,4 +114,8 @@ export async function sendVerificationEmail(toEmail, nombre, token) {
     // Versión texto plano como fallback
     text: `Hola ${nombre},\n\nVerificá tu cuenta haciendo click en el siguiente link:\n${verifyUrl}\n\nEste link expira en 24 horas.\n\nCanchas & Deportes`,
   });
+}
+
+export{
+  sendVerificationEmail
 }

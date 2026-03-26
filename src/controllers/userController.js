@@ -1,7 +1,7 @@
 import { getAllUsers, getUserById, deleteUser } from "../services/userService.js";
 
 // GET /api/users
-export async function getUsers(req, res) {
+async function getUsers(_, res) {
   try {
     const users = await getAllUsers();
     return res.status(200).json({ success: true, data: users });
@@ -11,7 +11,7 @@ export async function getUsers(req, res) {
 }
 
 // GET /api/users/:id
-export async function getUser(req, res) {
+async function getUser(req, res) {
   try {
     const user = await getUserById(req.params.id);
     if (!user) {
@@ -24,7 +24,7 @@ export async function getUser(req, res) {
 }
 
 // DELETE /api/users/:id
-export async function removeUser(req, res) {
+async function removeUser(req, res) {
   try {
     const user = await deleteUser(req.params.id);
     if (!user) {
@@ -34,4 +34,10 @@ export async function removeUser(req, res) {
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
+}
+
+export {
+  getUsers,
+  getUser,
+  removeUser
 }

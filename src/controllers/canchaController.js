@@ -1,13 +1,7 @@
-import {
-  getAllCanchas,
-  getCanchaById,
-  createCancha,
-  updateCancha,
-  deleteCancha,
-} from "../services/canchaService.js";
+import { getAllCanchas, getCanchaById, createCancha, updateCancha, deleteCancha } from "../services/canchaService.js";
 
 // GET /api/canchas
-export async function getCanchas(req, res) {
+async function getCanchas(_, res) {
   try {
     const canchas = await getAllCanchas();
     return res.status(200).json({ success: true, data: canchas });
@@ -17,7 +11,7 @@ export async function getCanchas(req, res) {
 }
 
 // GET /api/canchas/:id
-export async function getCancha(req, res) {
+async function getCancha(req, res) {
   try {
     const cancha = await getCanchaById(req.params.id);
     if (!cancha) {
@@ -30,7 +24,7 @@ export async function getCancha(req, res) {
 }
 
 // POST /api/canchas (admin)
-export async function addCancha(req, res) {
+async function addCancha(req, res) {
   try {
     const { nombre, tipo, precio, descripcion, imagen, estado } = req.body;
 
@@ -49,7 +43,7 @@ export async function addCancha(req, res) {
 }
 
 // PUT /api/canchas/:id (admin)
-export async function editCancha(req, res) {
+async function editCancha(req, res) {
   try {
     const cancha = await updateCancha(req.params.id, req.body);
     if (!cancha) {
@@ -62,7 +56,7 @@ export async function editCancha(req, res) {
 }
 
 // DELETE /api/canchas/:id (admin)
-export async function removeCancha(req, res) {
+async function removeCancha(req, res) {
   try {
     const cancha = await deleteCancha(req.params.id);
     if (!cancha) {
@@ -72,4 +66,12 @@ export async function removeCancha(req, res) {
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
+}
+
+export {
+  getCanchas,
+  getCancha,
+  addCancha,
+  editCancha,
+  removeCancha
 }

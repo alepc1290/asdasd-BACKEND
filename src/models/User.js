@@ -16,15 +16,13 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: false, // no es requerido para usuarios de Google
+      required: false,
     },
-    // Proveedor de autenticación
     provider: {
       type: String,
       enum: ["local", "google"],
       default: "local",
     },
-    // ID de Google (solo para usuarios con provider = "google")
     googleId: {
       type: String,
       default: null,
@@ -34,10 +32,8 @@ const userSchema = new mongoose.Schema(
       enum: ["admin", "user"],
       default: "user",
     },
-    // Tokens de Google OAuth2 para Calendar (se guardan tras autorizar)
     googleAccessToken: { type: String, default: null },
     googleRefreshToken: { type: String, default: null },
-    // Verificación de email
     isVerified: {
       type: Boolean,
       default: false,

@@ -1,11 +1,5 @@
 import { Router } from "express";
-import {
-  getProductos,
-  getProducto,
-  addProducto,
-  editProducto,
-  removeProducto,
-} from "../controllers/productoController.js";
+import { getProductos, getProducto, addProducto, editProducto, removeProducto } from "../controllers/productoController.js";
 import { verifyToken } from "../middlewares/authMiddleware.js";
 import { verifyAdmin } from "../middlewares/adminMiddleware.js";
 

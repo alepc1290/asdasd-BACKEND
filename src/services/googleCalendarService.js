@@ -5,10 +5,10 @@ import {
   GOOGLE_REDIRECT_URI,
 } from "../config/env.js";
 
-/**
- * Crea un cliente OAuth2 de Google.
- */
-export function createOAuthClient() {
+
+// Crea un cliente OAuth2 de Google.
+
+function createOAuthClient() {
   return new google.auth.OAuth2(
     GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET,
@@ -16,10 +16,10 @@ export function createOAuthClient() {
   );
 }
 
-/**
- * Genera la URL de autorización de Google para que el usuario vincule su cuenta.
- */
-export function getAuthUrl() {
+
+//Genera la URL de autorización de Google para que el usuario vincule su cuenta.
+
+function getAuthUrl() {
   const oAuth2Client = createOAuthClient();
   return oAuth2Client.generateAuthUrl({
     access_type: "offline",
@@ -28,10 +28,10 @@ export function getAuthUrl() {
   });
 }
 
-/**
- * Intercambia el código de autorización por tokens de acceso/refresh.
- */
-export async function getTokensFromCode(code) {
+
+// Intercambia el código de autorización por tokens de acceso/refresh.
+
+async function getTokensFromCode(code) {
   const oAuth2Client = createOAuthClient();
   const { tokens } = await oAuth2Client.getToken(code);
   return tokens;
@@ -45,7 +45,7 @@ export async function getTokensFromCode(code) {
  * @param {string} nombreCancha - Nombre de la cancha
  * @returns {string} - ID del evento creado en Google Calendar
  */
-export async function createCalendarEvent(
+async function createCalendarEvent(
   accessToken,
   refreshToken,
   reserva,
@@ -91,10 +91,10 @@ export async function createCalendarEvent(
   return response.data.id;
 }
 
-/**
- * Elimina un evento de Google Calendar.
- */
-export async function deleteCalendarEvent(accessToken, refreshToken, eventId) {
+
+// Elimina un evento de Google Calendar.
+
+async function deleteCalendarEvent(accessToken, refreshToken, eventId) {
   try {
     const oAuth2Client = createOAuthClient();
     oAuth2Client.setCredentials({
@@ -106,4 +106,12 @@ export async function deleteCalendarEvent(accessToken, refreshToken, eventId) {
   } catch (err) {
     console.warn("No se pudo eliminar el evento de Google Calendar:", err.message);
   }
+}
+
+export {
+  createOAuthClient,
+  getAuthUrl,
+  getTokensFromCode,
+  createCalendarEvent,
+  deleteCalendarEvent
 }

@@ -1,36 +1,16 @@
-import {
-  checkConflicto,
-  createReserva,
-  getAllReservas,
-  getReservaById,
-  deleteReserva,
-  updateGoogleEventId,
-  getReservasPorCanchaYFecha,
-  getAllReservasAdmin,
-  confirmarPago,
-  cancelarPago,
-} from "../services/reservaService.js";
+import { checkConflicto, createReserva, getAllReservas, getReservaById, deleteReserva, updateGoogleEventId, getReservasPorCanchaYFecha, getAllReservasAdmin, confirmarPago, cancelarPago } from "../services/reservaService.js";
 import { getCanchaById } from "../services/canchaService.js";
 import { getUserById } from "../services/userService.js";
-import {
-  createCalendarEvent,
-  deleteCalendarEvent,
-} from "../services/googleCalendarService.js";
-import {
-  ALIAS_TRANSFERENCIA,
-  CBU_TRANSFERENCIA,
-  TITULAR_CUENTA,
-  BANCO_NOMBRE,
-  WHATSAPP_ADMIN,
-} from "../config/env.js";
+import { createCalendarEvent, deleteCalendarEvent } from "../services/googleCalendarService.js";
+import { ALIAS_TRANSFERENCIA, CBU_TRANSFERENCIA, TITULAR_CUENTA, BANCO_NOMBRE, WHATSAPP_ADMIN } from "../config/env.js";
 
 // POST /api/reservas
-export async function addReserva(req, res) {
+ async function addReserva(req, res) {
   try {
     const { canchaId, fecha, horaInicio, horaFin } = req.body;
     const userId = req.user.id;
 
-    // Validar campos requeridos
+    // Validar campos requeridos, elegir cancha, dia, horario de inicio y horario de salida de reservación
     if (!canchaId || !fecha || !horaInicio || !horaFin) {
       return res.status(400).json({
         success: false,
@@ -38,7 +18,7 @@ export async function addReserva(req, res) {
       });
     }
 
-    // Validar que horaFin > horaInicio
+    // Validar que la hora de salida sea posterior a la hora de inicio
     if (horaFin <= horaInicio) {
       return res.status(400).json({
         success: false,
@@ -46,7 +26,7 @@ export async function addReserva(req, res) {
       });
     }
 
-    // Verificar que la cancha existe
+    // Verificar que la cancha exista
     const cancha = await getCanchaById(canchaId);
     if (!cancha) {
       return res.status(404).json({ success: false, message: "Cancha no encontrada" });
@@ -59,7 +39,7 @@ export async function addReserva(req, res) {
       });
     }
 
-    // ✅ Verificar conflicto de horario
+    // Verificar conflicto de cancha reservada 
     const conflicto = await checkConflicto(canchaId, fecha, horaInicio, horaFin);
     if (conflicto) {
       return res.status(400).json({
@@ -68,7 +48,7 @@ export async function addReserva(req, res) {
       });
     }
 
-    // Crear la reserva
+    // Crear reserva
     const reserva = await createReserva({ userId, canchaId, fecha, horaInicio, horaFin });
 
     // Intentar crear evento en Google Calendar (opcional, no rompe el flujo si falla)
@@ -99,7 +79,7 @@ export async function addReserva(req, res) {
 }
 
 // GET /api/reservas
-export async function getReservas(req, res) {
+ async function getReservas(_, res) {
   try {
     const reservas = await getAllReservas();
     return res.status(200).json({ success: true, data: reservas });
@@ -109,7 +89,7 @@ export async function getReservas(req, res) {
 }
 
 // GET /api/reservas/:id
-export async function getReserva(req, res) {
+ async function getReserva(req, res) {
   try {
     const reserva = await getReservaById(req.params.id);
     if (!reserva) {
@@ -122,7 +102,7 @@ export async function getReserva(req, res) {
 }
 
 // DELETE /api/reservas/:id
-export async function removeReserva(req, res) {
+ async function removeReserva(req, res) {
   try {
     const reserva = await getReservaById(req.params.id);
     if (!reserva) {
@@ -152,8 +132,8 @@ export async function removeReserva(req, res) {
   }
 }
 
-// GET /api/reservas/disponibilidad?canchaId=...&fecha=...
-export async function getDisponibilidad(req, res) {
+// GET /api/reservas/disponibilidad?canchaId=... &fecha=...
+ async function getDisponibilidad(req, res) {
   try {
     const { canchaId, fecha } = req.query;
 
@@ -172,15 +152,15 @@ export async function getDisponibilidad(req, res) {
       });
     }
 
-    // Traer solo los horarios reservados para esa cancha y fecha
+    // Trae solo los horarios reservados para esa cancha y fecha
     const reservasExistentes = await getReservasPorCanchaYFecha(canchaId, fecha);
 
     // Generar todos los slots posibles: 08:00 a 23:00 en intervalos de 1 hora
     // Un slot "08:00" representa el turno de 08:00 a 09:00
     const HORA_INICIO = 8;
-    const HORA_FIN    = 23;
+    const HORA_FIN = 23;
     const todosLosSlots = [];
-    for (let h = HORA_INICIO; h < HORA_FIN; h++) {
+    for (let i = HORA_INICIO; i < HORA_FIN; i++) {
       todosLosSlots.push(`${String(h).padStart(2, "0")}:00`);
     }
 
@@ -190,7 +170,7 @@ export async function getDisponibilidad(req, res) {
 
     for (const slot of todosLosSlots) {
       const slotInicio = slot;
-      const slotFin    = `${String(parseInt(slot) + 1).padStart(2, "0")}:00`;
+      const slotFin = `${String(parseInt(slot) + 1).padStart(2, "0")}:00`;
 
       const ocupado = reservasExistentes.some(
         (r) => slotInicio < r.horaFin && slotFin > r.horaInicio
@@ -218,24 +198,24 @@ export async function getDisponibilidad(req, res) {
 }
 
 // GET /api/reservas/admin  (solo admin)
-export async function getReservasAdmin(req, res) {
+ async function getReservasAdmin(req, res) {
   try {
     const reservas = await getAllReservasAdmin();
 
     // Formatear la respuesta con la estructura exacta pedida
     const data = reservas.map((r) => ({
-      _id:        r._id,
-      usuario:    r.userId?.nombre  || "Usuario eliminado",
-      email:      r.userId?.email   || "-",
-      cancha:     r.canchaId?.nombre || "Cancha eliminada",
-      tipoCacha:  r.canchaId?.tipo   || "-",
-      precio:     r.canchaId?.precio || 0,
-      fecha:      r.fecha,
+      _id: r._id,
+      usuario: r.userId?.nombre || "Usuario eliminado",
+      email: r.userId?.email || "-",
+      cancha: r.canchaId?.nombre || "Cancha eliminada",
+      tipoCacha: r.canchaId?.tipo || "-",
+      precio: r.canchaId?.precio || 0,
+      fecha: r.fecha,
       horaInicio: r.horaInicio,
-      horaFin:    r.horaFin,
+      horaFin: r.horaFin,
       estadoPago: r.estadoPago,
       metodoPago: r.metodoPago,
-      createdAt:  r.createdAt,
+      createdAt: r.createdAt,
     }));
 
     return res.status(200).json({
@@ -249,7 +229,7 @@ export async function getReservasAdmin(req, res) {
 }
 
 // PATCH /api/reservas/:id/confirmar-pago  (solo admin)
-export async function patchConfirmarPago(req, res) {
+ async function patchConfirmarPago(req, res) {
   try {
     const reserva = await confirmarPago(req.params.id);
     if (!reserva) {
@@ -259,12 +239,12 @@ export async function patchConfirmarPago(req, res) {
       success: true,
       message: "Pago confirmado correctamente",
       reserva: {
-        _id:        reserva._id,
-        usuario:    reserva.userId?.nombre,
-        cancha:     reserva.canchaId?.nombre,
-        fecha:      reserva.fecha,
+        _id: reserva._id,
+        usuario: reserva.userId?.nombre,
+        cancha: reserva.canchaId?.nombre,
+        fecha: reserva.fecha,
         horaInicio: reserva.horaInicio,
-        horaFin:    reserva.horaFin,
+        horaFin: reserva.horaFin,
         estadoPago: reserva.estadoPago,
         metodoPago: reserva.metodoPago,
       },
@@ -275,7 +255,7 @@ export async function patchConfirmarPago(req, res) {
 }
 
 // PATCH /api/reservas/:id/cancelar-pago  (solo admin)
-export async function patchCancelarPago(req, res) {
+ async function patchCancelarPago(req, res) {
   try {
     const reserva = await cancelarPago(req.params.id);
     if (!reserva) {
@@ -285,10 +265,10 @@ export async function patchCancelarPago(req, res) {
       success: true,
       message: "Pago cancelado",
       reserva: {
-        _id:        reserva._id,
-        usuario:    reserva.userId?.nombre,
-        cancha:     reserva.canchaId?.nombre,
-        fecha:      reserva.fecha,
+        _id: reserva._id,
+        usuario: reserva.userId?.nombre,
+        cancha: reserva.canchaId?.nombre,
+        fecha: reserva.fecha,
         estadoPago: reserva.estadoPago,
         metodoPago: reserva.metodoPago,
       },
@@ -299,15 +279,26 @@ export async function patchCancelarPago(req, res) {
 }
 
 // GET /api/reservas/datos-transferencia  (público)
-export function getDatosTransferencia(req, res) {
+ function getDatosTransferencia(req, res) {
   return res.status(200).json({
     success: true,
     data: {
-      alias:    ALIAS_TRANSFERENCIA,
-      cbu:      CBU_TRANSFERENCIA,
-      titular:  TITULAR_CUENTA,
-      banco:    BANCO_NOMBRE,
+      alias: ALIAS_TRANSFERENCIA,
+      cbu: CBU_TRANSFERENCIA,
+      titular: TITULAR_CUENTA,
+      banco: BANCO_NOMBRE,
       whatsapp: WHATSAPP_ADMIN,
     },
   });
+}
+export {
+  addReserva,
+  getReservas,
+  getReserva,
+  removeReserva,
+  getDisponibilidad,
+  getReservasAdmin,
+  patchConfirmarPago,
+  patchCancelarPago,
+  getDatosTransferencia
 }

@@ -13,15 +13,15 @@ const reservaSchema = new mongoose.Schema(
       required: [true, "La cancha es requerida"],
     },
     fecha: {
-      type: String, // formato: "YYYY-MM-DD"
+      type: String,
       required: [true, "La fecha es requerida"],
     },
     horaInicio: {
-      type: String, // formato: "HH:MM"
+      type: String, 
       required: [true, "La hora de inicio es requerida"],
     },
     horaFin: {
-      type: String, // formato: "HH:MM"
+      type: String, 
       required: [true, "La hora de fin es requerida"],
     },
     googleEventId: {
@@ -45,9 +45,6 @@ const reservaSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
-// Índice compuesto para acelerar las consultas de disponibilidad
-// (canchaId + fecha es la combinación más consultada)
 reservaSchema.index({ canchaId: 1, fecha: 1, deleted: 1 });
 
 export default mongoose.model("Reserva", reservaSchema);

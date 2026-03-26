@@ -2,20 +2,12 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { JWT_SECRET, FRONT_URL } from "../config/env.js";
-import {
-  createUser,
-  getUserByEmail,
-  updateUserTokens,
-  getUserByVerificationToken,
-} from "../services/userService.js";
-import {
-  getAuthUrl,
-  getTokensFromCode,
-} from "../services/googleCalendarService.js";
+import { createUser, getUserByEmail, updateUserTokens, getUserByVerificationToken } from "../services/userService.js";
+import { getAuthUrl, getTokensFromCode, } from "../services/googleCalendarService.js";
 import { sendVerificationEmail } from "../services/emailService.js";
 
 // POST /api/auth/register
-export async function register(req, res) {
+async function register(req, res) {
   try {
     const { nombre, email, password, rol } = req.body;
 
@@ -67,7 +59,7 @@ export async function register(req, res) {
 }
 
 // POST /api/auth/login
-export async function login(req, res) {
+async function login(req, res) {
   try {
     const { email, password } = req.body;
 
@@ -134,7 +126,7 @@ export async function login(req, res) {
 }
 
 // GET /api/auth/verify-email?token=TOKEN
-export async function verifyEmail(req, res) {
+async function verifyEmail(req, res) {
   try {
     const { token } = req.query;
 
@@ -184,7 +176,7 @@ export async function verifyEmail(req, res) {
 // (la redirección real la hace passport.authenticate en la ruta)
 
 // GET /api/auth/google/callback — Passport procesa el perfil y llega aquí con req.user
-export function googleLoginCallback(req, res) {
+function googleLoginCallback(req, res) {
   try {
     const user = req.user;
 
@@ -211,13 +203,13 @@ export function googleLoginCallback(req, res) {
 // ─── Google Calendar OAuth2 (vinculación de agenda) ──────────────────────────
 
 // GET /api/auth/google — redirige al usuario a la pantalla de autorización de Google
-export function googleAuthRedirect(req, res) {
+function googleAuthRedirect(req, res) {
   const url = getAuthUrl();
   return res.redirect(url);
 }
 
 // GET /api/auth/google/callback — Google llama aquí con el código de autorización
-export async function googleAuthCallback(req, res) {
+async function googleAuthCallback(req, res) {
   try {
     const { code } = req.query;
     if (!code) {
@@ -239,4 +231,13 @@ export async function googleAuthCallback(req, res) {
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
+}
+
+export {
+  register,
+  login,
+  verifyEmail,
+  googleLoginCallback,
+  googleAuthRedirect,
+  googleAuthCallback
 }

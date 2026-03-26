@@ -1,13 +1,7 @@
-import {
-  getAllProductos,
-  getProductoById,
-  createProducto,
-  updateProducto,
-  deleteProducto,
-} from "../services/productoService.js";
+import { getAllProductos, getProductoById, createProducto, updateProducto, deleteProducto } from "../services/productoService.js";
 
 // GET /api/productos
-export async function getProductos(req, res) {
+export async function getProductos(_, res) {
   try {
     const productos = await getAllProductos();
     return res.status(200).json({ success: true, data: productos });
