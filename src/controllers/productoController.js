@@ -1,7 +1,7 @@
 import { getAllProductos, getProductoById, createProducto, updateProducto, deleteProducto } from "../services/productoService.js";
 
 // GET /api/productos
-export async function getProductos(_, res) {
+async function getProductos(_, res) {
   try {
     const productos = await getAllProductos();
     return res.status(200).json({ success: true, data: productos });
@@ -11,7 +11,7 @@ export async function getProductos(_, res) {
 }
 
 // GET /api/productos/:id
-export async function getProducto(req, res) {
+async function getProducto(req, res) {
   try {
     const producto = await getProductoById(req.params.id);
     if (!producto) {
@@ -24,7 +24,7 @@ export async function getProducto(req, res) {
 }
 
 // POST /api/productos (admin)
-export async function addProducto(req, res) {
+async function addProducto(req, res) {
   try {
     const { nombre, precio, stock, descripcion, imagen } = req.body;
 
@@ -43,7 +43,7 @@ export async function addProducto(req, res) {
 }
 
 // PUT /api/productos/:id (admin)
-export async function editProducto(req, res) {
+async function editProducto(req, res) {
   try {
     const producto = await updateProducto(req.params.id, req.body);
     if (!producto) {
@@ -56,7 +56,7 @@ export async function editProducto(req, res) {
 }
 
 // DELETE /api/productos/:id (admin)
-export async function removeProducto(req, res) {
+async function removeProducto(req, res) {
   try {
     const producto = await deleteProducto(req.params.id);
     if (!producto) {
@@ -66,4 +66,12 @@ export async function removeProducto(req, res) {
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
+}
+
+export {
+  getProductos,
+  getProducto,
+  addProducto,
+  editProducto,
+  removeProducto
 }
